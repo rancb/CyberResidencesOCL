@@ -4,6 +4,7 @@
 
 model CyberResidences
 
+-- enum
 
 enum Category {
     economy,
@@ -19,6 +20,8 @@ enum Gender {
 }
 
 
+-- classes
+
 class Residence
 attributes
     name     : String
@@ -32,10 +35,10 @@ operations
     bedrooms() : Set(Bedroom) =
         rooms->select(oclIsKindOf(Bedroom))->oclAsType(Set(Bedroom))
     -- Set of useful bedrooms.
-    usefulBedrooms() : Set(Bedroom)
+    usefulBedrooms() : Set(Bedroom) =
         bedrooms()->select(not isOutOfOrder)
     -- Set of residence bathrooms
-    bathrooms() : Set(Bathroom)
+    bathrooms() : Set(Bathroom) =
         rooms->select(oclIsKindOf(Bathroom))->oclAsType(Set(Bathroom))
 end
 
@@ -50,10 +53,59 @@ end
 
 class Bathroom < Room
 attributes
-    isOnTheLanding : Boolean
+    isOnTheLanding : Boolean -- @derived
 end
 
 -- TODO
+
+class Person
+attributes
+    name : String
+    age : Integer
+    gender : Gender
+end
+
+
+class Resident < Person
+attributes
+    isSmoker : Boolean
+end
+
+
+class Tenant < Resident
+attributes
+    paidRate : Real -- @derived
+end
+
+
+class Bedroom < Room
+attributes
+    nbOfSingleBeds : Integer
+    nbOfDoubleBeds : Integer
+    rate : Real
+    isNonSmoking : Boolean
+    nbOfUnits : Integer -- @derived
+end
+
+
+class Discount
+attributes
+    percentage : Integer
+    label : String
+end
+
+-- association class
+
+associationclass Rent between
+    Bedroom[1..*] role rentedBedrooms
+    Tenant[0..1] role tenant
+attributes
+    discount : Real -- @derived
+    rate : Real -- @derived
+end
+
+
+-- associations
 
 -- For association classes use the following syntax
 -- (see documentation for more details)
@@ -63,6 +115,41 @@ end
 -- attributes
 --     ...
 -- end
+
+composition ContainsRooms between
+    Residence[1] role residence
+    Room[*] role rooms
+end
+
+
+composition HasDiscounts between
+    Rent[1] role rent
+    Discount[*] role discounts
+end
+
+
+association occupiedRoom between
+    Bedroom[1] role IsOccupiedBy
+    Resident[*] role occupants
+end
+
+
+association IsMarriedWith between
+    Resident[0..1] role consort
+    Resident[0..1]
+end
+
+
+association IsTutoredBy between
+    Resident[0..2] role tutors
+    Resident[*] role tutored
+end
+
+
+association IsInBedroom between
+    Bathroom[0..3] role bathrooms
+    Bedroom[0..1] role bedroom
+end
 
 
 constraints
@@ -98,6 +185,11 @@ constraints
 -- context Resident inv adultMarried:
     -- To be registered as married, resident must be adult.
 
+context Resident
+    inv adultMarried:
+        self.consort->notEmpty()
+            implies self.age >= 18
+
 
 -------------------------------------------------------------------------------
 --                                 adultTenant
@@ -107,6 +199,10 @@ constraints
 
 -- context Tenant inv adultTenant:
     -- The minimal age to rent a bedroom is 18 years old.
+
+context Tenant
+    inv adultTenant:
+       self.age >= 18 
 
 
 -------------------------------------------------------------------------------
@@ -129,6 +225,11 @@ constraints
 -- context Bedroom inv atLeastABed:
     -- Bedrooms that are not out of order must have at least one bed.
 
+context Bedroom
+    inv atLeastABed:
+        not self.isOutOfOrder
+            implies (self.nbOfSingleBeds >= 1 or self.nbOfDoubleBeds >= 1)
+
 
 -------------------------------------------------------------------------------
 --                               atLeastOneAdult
@@ -138,6 +239,12 @@ constraints
 
 -- context Bedroom inv atLeastOneAdult:
     -- At least one adult must be presented in all occupied rooms.
+
+context Bedroom
+    inv atLeastOneAdult:
+        self.occupants->notEmpty
+            implies (self.occupants->exists(o |
+                o.age >= 18))
 
 
 -------------------------------------------------------------------------------
@@ -149,6 +256,11 @@ constraints
 
 -- context Resident inv childNonSmoking:
     -- Children are always declared as non smoker.
+
+context Resident
+    inv childNonSmoking:
+        self.age < 18
+            implies self.isSmoker = false
 
 
 -------------------------------------------------------------------------------
@@ -171,6 +283,10 @@ constraints
 
 -- context Rent inv cumulatedDiscounts:
     -- No room will have more that 70% of dicounts cumulated.
+
+context Rent
+    inv cumulatedDiscounts:
+        self.discounts.percentage->sum() <= 70
 
 
 -------------------------------------------------------------------------------
@@ -195,6 +311,10 @@ constraints
     -- The discount for a rent, is the rate of the bedroom multiplied
     -- by the sum of percentages of all discounts.
 
+context Rent
+    inv deriveDiscount:
+        self.discount = self.rate*self.discounts.percentage->sum()
+
 
 -------------------------------------------------------------------------------
 --                                 deriveFloor
@@ -207,6 +327,10 @@ constraints
     -- number, where the last two digits are removed. For instance the
     -- room 634 is at the floor 6.
 
+context Room
+    inv deriveFloor:
+        self.floor = (self.number/100).floor()
+
 
 -------------------------------------------------------------------------------
 --                             deriveIsOnTheLanding
@@ -217,6 +341,11 @@ constraints
 -- context Bathroom inv deriveIsOnTheLanding:
     -- A bathroom is said to be on the landing if it is not in a
     -- bedroom.
+
+context Bathroom
+    inv deriveIsOnTheLanding:
+        not self.bedroom->notEmpty
+            implies self.isOnTheLanding = true
 
 
 -------------------------------------------------------------------------------
