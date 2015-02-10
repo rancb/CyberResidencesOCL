@@ -522,9 +522,9 @@ context Resident
     -- A resident and his or her consort occupies a room of the same
     -- group.
 
---context Resident
---    inv marriageInSameGroup:
-        
+context Resident
+    inv marriageInSameGroup:
+        self.occupiedRoom.tenant = self.consort.occupiedRoom.tenant
 
 
 -------------------------------------------------------------------------------
@@ -553,6 +553,10 @@ context Resident
     -- There must be no more people in a bedroom that the number of
     -- units of this bedroom. Children up to 3 years old are not
     -- counted in this rule.
+
+context Bedroom
+    inv noBedroomOverload:
+        self.nbOfUnits >= self.occupants->select(age >= 3)->size
 
 
 -------------------------------------------------------------------------------
@@ -629,9 +633,11 @@ context Bedroom
     -- as out of order, the corresponding bedroom is also marked as
     -- out of order.
 
---context Bathroom
---    inv oooIfPrestige:
---        self.residence.category = Category::prestige
+context Bathroom
+    inv oooIfPrestige:
+        self.residence.category = Category::prestige
+            implies self.isOutOfOrder = true
+                implies self.bedroom.isOutOfOrder = true
 
 
 -------------------------------------------------------------------------------
@@ -643,6 +649,11 @@ context Bedroom
 -- context Tenant inv rentInOneResidence:
     -- For a given tenant, all rented bedrooms are in the same
     -- residence.
+
+context Tenant
+    inv rentInOneResidence:
+        self.rentedBedrooms->forAll(b1, b2|
+            b1.residence = b2.residence)
 
 
 -------------------------------------------------------------------------------
@@ -722,6 +733,11 @@ context Bedroom
 -- context Tenant inv tenantInRentedRoom:
     -- A tenant occupies one of the bedroom that he or she has rented.
 
+context Tenant
+    inv tenantInRentedRoom:
+        self.rentedBedrooms->exists(b |
+            b = self.occupiedRoom)
+
 
 -------------------------------------------------------------------------------
 --                                  tutorAdult
@@ -750,6 +766,11 @@ context Resident
     -- resident. In other words they are all in the same group of
     -- rooms.
 
+context Resident
+    inv tutorInSameGroup:
+        self.tutored->forAll(t |
+            t.occupiedRoom.tenant = self.occupiedRoom.tenant)
+
 
 -------------------------------------------------------------------------------
 --                     uniqueNumberApartForPrivateBathroom
@@ -760,3 +781,6 @@ context Resident
 -- context Residence inv uniqueNumberApartForPrivateBathroom:
     -- All rooms have a distinct number, except private bathrooms.
 
+--context Residence
+--    inv uniqueNumberApartForPrivateBathroom:
+--        self.rooms->excluding(self.rooms->select(oclIsKindOf(Bathroom).isOnTheLanding = false))->isUnique(number)
