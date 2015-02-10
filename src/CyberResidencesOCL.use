@@ -128,8 +128,8 @@ composition HasDiscounts between
 end
 
 
-association occupiedRoom between
-    Bedroom[1] role IsOccupiedBy
+association IsOccupiedBy between
+    Bedroom[1] role occupiedRoom
     Resident[*] role occupants
 end
 
@@ -215,6 +215,12 @@ context Tenant
     -- Residences of category prestige have in each bedroom at least
     -- the same number of bathroom that the number of beds.
 
+context Residence
+    inv allPrestigeBathrooms:
+        self.category = Category::prestige
+            implies self.bedrooms()->forAll(b |
+                (b.nbOfSingleBeds + b.nbOfDoubleBeds) <= b.bathrooms->size)
+
 
 -------------------------------------------------------------------------------
 --                                 atLeastABed
@@ -274,6 +280,12 @@ context Resident
     -- tutor, apart in prestige residences where this rule does not
     -- apply.
 
+context Resident
+    inv childTutored:
+        self.occupiedRoom.residence.category = Category::prestige
+            implies self.age < 18
+                implies self.tutors->size > 0
+
 
 -------------------------------------------------------------------------------
 --                              cumulatedDiscounts
@@ -299,6 +311,10 @@ context Rent
     -- The average rate of a residence is the total revenue of the
     -- residence divided by the number of occupants. Tutored residents
     -- do not count in this rule.
+
+context Residence
+    inv deriveAvgRate:
+        self.avgRate = (self.bedrooms().rate->sum() / self.bedrooms().occupants->select(tutors->isEmpty())->size )
 
 
 -------------------------------------------------------------------------------
@@ -358,6 +374,10 @@ context Bathroom
     -- The maximum number of free units is equal to the maximum number
     -- of places in beds of all rooms of the residence.
 
+context Residence
+    inv deriveMaxNbOfFreeUnits:
+        self.maxNbOfFreeUnits = (self.usefulBedrooms().nbOfSingleBeds->sum() + 2 * self.usefulBedrooms().nbOfDoubleBeds->sum())
+
 
 -------------------------------------------------------------------------------
 --                               deriveNbOfUnits
@@ -369,6 +389,10 @@ context Bathroom
     -- The number of units of a bedroom is the maximum number of
     -- people that can fit within the bedroom assuming that all places
     -- in all beds are full.
+
+context Bedroom
+    inv deriveNbOfUnits:
+        self.nbOfUnits = (self.nbOfSingleBeds + 2 * self.nbOfDoubleBeds)
 
 
 -------------------------------------------------------------------------------
@@ -395,6 +419,10 @@ context Bathroom
     -- The rate of a rent corresponds to the regular rate for the room
     -- minus the discount.
 
+context Rent
+    inv deriveRate:
+        self.rate = self.rentedBedrooms.rate - self.discount
+
 
 -------------------------------------------------------------------------------
 --                               domainPercentage
@@ -404,6 +432,10 @@ context Bathroom
 
 -- context Discount inv domainPercentage:
     -- The percentage is a value between 1 and 100.
+
+context Discount
+    inv domainPercentage:
+        self.percentage >= 1 and self.percentage <= 100
 
 
 -------------------------------------------------------------------------------
@@ -416,6 +448,11 @@ context Bathroom
     -- In a prestige residence, the number of private bathrooms is at
     -- least the same as the number of beds in each bedroom.
 
+context Bedroom
+    inv enoughBathroomsInPrestige:
+        self.residence.category = Category::prestige
+            implies (self.nbOfSingleBeds + self.nbOfDoubleBeds) <= self.bathrooms->size()
+
 
 -------------------------------------------------------------------------------
 --                            floorBetweenMinAndMax
@@ -426,6 +463,10 @@ context Bathroom
 -- context Room inv floorBetweenMinAndMax:
     -- The floor of a room is between the minium and maximum floor of
     -- the residence.
+
+context Room
+    inv floorBetweenMinAndMax:
+        self.floor <= self.residence.floorMax and self.floor >= self.residence.floorMin
 
 
 -------------------------------------------------------------------------------
@@ -438,6 +479,10 @@ context Bathroom
     -- The maximum floor is at higher or at the same level that the
     -- minimum floor of the residence.
 
+context Residence
+    inv floorOrder:
+        self.floorMax >= self.floorMin
+
 
 -------------------------------------------------------------------------------
 --                                 labelUnique
@@ -448,6 +493,10 @@ context Bathroom
 -- context Rent inv labelUnique:
     -- All discounts associated to a rent have distinct labels.
 
+context Rent
+    inv labelUnique:
+        self.discounts->isUnique(label)
+
 
 -------------------------------------------------------------------------------
 --                           marriageAntiReflexivity
@@ -457,6 +506,10 @@ context Bathroom
 
 -- context Resident inv marriageAntiReflexivity:
     -- A resident cannot mary with himself or herself.
+
+context Resident
+    inv marriageAntiReflexivity:
+        self.consort <> self
 
 
 -------------------------------------------------------------------------------
@@ -469,6 +522,10 @@ context Bathroom
     -- A resident and his or her consort occupies a room of the same
     -- group.
 
+--context Resident
+--    inv marriageInSameGroup:
+        
+
 
 -------------------------------------------------------------------------------
 --                               marriageSymmetry
@@ -479,6 +536,11 @@ context Bathroom
 -- context Resident inv marriageSymmetry:
     -- If a resident is declared to be the consort of another
     -- resident, then the opposite is true as well.
+
+context Resident
+    inv marriageSymmetry:
+        self.consort->notEmpty()
+            implies self.consort.consort = self
 
 
 -------------------------------------------------------------------------------
@@ -502,6 +564,11 @@ context Bathroom
 -- context Bedroom inv noEmptyRentedBedrooms:
     -- All rented bedrooms are occupied by at least one occupant.
 
+context Bedroom
+    inv noEmptyRentedBedrooms:
+        self.tenant->notEmpty()
+            implies self.occupants->size >= 1
+
 
 -------------------------------------------------------------------------------
 --                                  noSquaters
@@ -513,6 +580,11 @@ context Bathroom
     -- Occupants must be exclusively in rooms that are rented by
     -- somebody.
 
+context Bedroom
+    inv noSquaters:
+        not self.tenant->notEmpty()
+            implies self.occupants->size = 0
+
 
 -------------------------------------------------------------------------------
 --                               noTutorForAdults
@@ -523,6 +595,11 @@ context Bathroom
 -- context Resident inv noTutorForAdults:
     -- Adults never have tutor.
 
+context Resident
+    inv noTutorForAdults:
+        self.age >= 18
+            implies self.tutors->size = 0
+
 
 -------------------------------------------------------------------------------
 --                             oooBedroomsNotRented
@@ -532,6 +609,12 @@ context Bathroom
 
 -- context Bedroom inv oooBedroomsNotRented:
     -- Bedrooms that are out of order cannot be rented.
+
+context Bedroom
+    inv oooBedroomsNotRented:
+        self.isOutOfOrder = false
+            implies self.tenant->isEmpty
+
 
 
 -------------------------------------------------------------------------------
@@ -545,6 +628,10 @@ context Bathroom
     -- with bathrooms that are out of order. So if a bathrom is marked
     -- as out of order, the corresponding bedroom is also marked as
     -- out of order.
+
+--context Bathroom
+--    inv oooIfPrestige:
+--        self.residence.category = Category::prestige
 
 
 -------------------------------------------------------------------------------
@@ -568,6 +655,11 @@ context Bathroom
     -- All bathrooms that are not on the landing, that is that are
     -- private to a bedroom, have the same number of room as this
     -- bedroom.
+
+context Bathroom
+    inv sameNumberIfPrivate:
+        self.isOnTheLanding = false
+            implies self.number = self.bedroom.number
 
 
 -------------------------------------------------------------------------------
@@ -615,6 +707,11 @@ context Bathroom
 -- context Bedroom inv smokingPrestigePolicy:
     -- There are no smoking rooms at all in residence of prestige.
 
+context Bedroom
+    inv smokingPrestigePolicy:
+        self.residence.category = Category::prestige
+            implies self.isNonSmoking = true
+
 
 -------------------------------------------------------------------------------
 --                              tenantInRentedRoom
@@ -635,6 +732,11 @@ context Bathroom
 -- context Resident inv tutorAdult:
     -- A resident can not be the tutor of another resident if he or
     -- she is not an adult.
+
+context Resident
+    inv tutorAdult:
+        self.age < 18
+            implies self.tutored->size = 0
 
 
 -------------------------------------------------------------------------------
