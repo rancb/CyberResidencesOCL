@@ -783,4 +783,4 @@ context Resident
 
 context Residence
     inv uniqueNumberApartForPrivateBathroom:
-        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=true))->isUnique(number)
+        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=false))->isUnique(number)
