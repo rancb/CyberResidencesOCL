@@ -5,3 +5,102 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+-- TESTED
+! create G248_Res1 : Residence
+! set G248_Res1.name := 'Lilas'
+! set G248_Res1.floorMin := 1
+! set G248_Res1.floorMax := 3
+! set G248_Res1.category := #prestige
+! set G248_Res1.maxNbOfFreeUnits := 30
+! set G248_Res1.avgRate := 200
+! create G248_Res2 : Residence
+! set G248_Res2.name := 'Fleurs'
+! set G248_Res2.floorMin := 1
+! set G248_Res2.floorMax := 3
+! set G248_Res2.category := #standard
+! set G248_Res2.maxNbOfFreeUnits := 30
+! set G248_Res2.avgRate := 200
+! create G248_Br2 : Bedroom
+! set G248_Br2.number := 102
+! set G248_Br2.floor := 1
+! set G248_Br2.isOutOfOrder := false
+! set G248_Br2.nbOfSingleBeds := 2
+! set G248_Br2.nbOfDoubleBeds := 0
+! set G248_Br2.rate := 150
+! set G248_Br2.isNonSmoking := false
+! set G248_Br2.nbOfUnits := 2
+! create G248_Br1 : Bedroom
+! set G248_Br1.number := 101
+! set G248_Br1.floor := 1
+! set G248_Br1.isOutOfOrder := false
+! set G248_Br1.nbOfSingleBeds := 2
+! set G248_Br1.nbOfDoubleBeds := 0
+! set G248_Br1.rate := 150
+! set G248_Br1.isNonSmoking := false
+! set G248_Br1.nbOfUnits := 2
+! create G248_Br3 : Bedroom
+! set G248_Br3.number := 203
+! set G248_Br3.floor := 2
+! set G248_Br3.isOutOfOrder := false
+! set G248_Br3.nbOfSingleBeds := 1
+! set G248_Br3.nbOfDoubleBeds := 0
+! set G248_Br3.rate := 150
+! set G248_Br3.isNonSmoking := false
+! set G248_Br3.nbOfUnits := 1
+! create G248_Br4 : Bedroom
+! set G248_Br4.number := 104
+! set G248_Br4.floor := 1
+! set G248_Br4.isOutOfOrder := false
+! set G248_Br4.nbOfSingleBeds := 2
+! set G248_Br4.nbOfDoubleBeds := 0
+! set G248_Br4.rate := 150
+! set G248_Br4.isNonSmoking := false
+! set G248_Br4.nbOfUnits := 2
+! create G248_paul : Resident
+! set G248_paul.name := 'Paul Bismut'
+! set G248_paul.age := 12
+! set G248_paul.gender := #male
+! set G248_paul.isSmoker := false
+! create G248_jean : Resident
+! set G248_jean.name := 'Jean Pierre'
+! set G248_jean.age := 28
+! set G248_jean.gender := #male
+! set G248_jean.isSmoker := false
+! create G248_michel : Resident
+! set G248_michel.name := 'Michel Dupont'
+! set G248_michel.age := 45
+! set G248_michel.gender := #male
+! set G248_michel.isSmoker := false
+! create G248_tenant1 : Tenant
+! set G248_tenant1.name := 'Jean Hugues'
+! set G248_tenant1.age := 66
+! set G248_tenant1.gender := #male
+! set G248_tenant1.paidRate := 430
+! create G248_tenant2 : Tenant
+! set G248_tenant2.name := 'Hugette'
+! set G248_tenant2.age := 67
+! set G248_tenant2.gender := #female
+! set G248_tenant2.paidRate := 150
+! create G248_rent1 : Rent between (G248_Br1,G248_tenant1)
+! set G248_rent1.discount := 0
+! set G248_rent1.rate := 150
+! create G248_rent2 : Rent between (G248_Br2,G248_tenant1)
+! set G248_rent2.discount := 0
+! set G248_rent2.rate := 150
+! create G248_rent3 : Rent between (G248_Br3,G248_tenant1)
+! set G248_rent3.discount := 0
+! set G248_rent3.rate := 150
+! create G248_rent4 : Rent between (G248_Br4,G248_tenant2)
+! set G248_rent4.discount := 0
+! set G248_rent4.rate := 150
+! insert (G248_Res1,G248_Br1) into ContainsRooms
+! insert (G248_Res1,G248_Br2) into ContainsRooms
+! insert (G248_Res1,G248_Br3) into ContainsRooms
+! insert (G248_Res1,G248_Br4) into ContainsRooms
+! insert (G248_jean,G248_jean) into IsMarriedWith
+! insert (G248_michel,G248_jean) into IsTutoredBy
+! insert (G248_Br1,G248_paul) into IsOccupiedBy
+! insert (G248_Br2,G248_jean) into IsOccupiedBy
+! insert (G248_Br2,G248_michel) into IsOccupiedBy
+! insert (G248_Br3,G248_tenant1) into IsOccupiedBy
+! insert (G248_Br4,G248_tenant2) into IsOccupiedBy
