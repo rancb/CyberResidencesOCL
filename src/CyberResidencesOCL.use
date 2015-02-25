@@ -292,8 +292,8 @@ context Resident
 
 context Resident
     inv childTutored:
-        self.occupiedRoom.residence.category = Category::prestige
-            implies self.age < 18
+        self.occupiedRoom.residence.category <> Category::prestige
+            and self.age < 18
                 implies self.tutors->size > 0
 
 
@@ -806,4 +806,4 @@ context Resident
 
 context Residence
     inv uniqueNumberApartForPrivateBathroom:
-        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=true))->isUnique(number)
+        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=false))->isUnique(number)
