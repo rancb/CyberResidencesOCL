@@ -165,6 +165,11 @@ constraints
     -- order. The label of this type of discount is 'BROOO50'. This
     -- rule does not apply in economy residences.
 
+context Rent
+    inv aboooConditions:
+        (self.rentedBedrooms.residence.category <> Category::economy  and self.rentedBedrooms.bathrooms.select(b | not b.isOutOfOrder)->isEmpty())
+            implies self.discounts.exists(d | d.label = 'BROOO50')
+
 
 -------------------------------------------------------------------------------
 --                               aboooPercentage
@@ -174,6 +179,11 @@ constraints
 
 -- context Discount inv aboooPercentage:
     -- ABOO discounts are equal to 50%.
+
+context Discount
+    inv aboooPercentage:
+        self.label = 'BROOO50'
+            implies self.percentage = 50
 
 
 -------------------------------------------------------------------------------
@@ -686,6 +696,12 @@ context Bathroom
     -- label for this type of discount is SBOO. This type of discount
     -- does not apply on economy residences.
 
+context Rent
+    inv sboooConditions:
+        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms.select(b | not b.isOutOfOrder)->notEmpty()
+            and self.rentedBedrooms.bathrooms.select(b | b.isOutOfOrder)->notEmpty())
+                implies self.discounts.exists(d | d.label = 'SBOOO')
+
 
 -------------------------------------------------------------------------------
 --                               sboooPercentage
@@ -696,6 +712,13 @@ context Bathroom
 -- context Discount inv sboooPercentage:
     -- In premium residences, SBOO discounts are equal to 25%. For
     -- standard category the discount is of 10%.
+
+context Discount
+    inv sboooPercentage:
+        ((self.rent.rentedBedrooms.residence.category = Category::premium and self.label = 'SBOOO')
+            implies self.percentage = 25)
+        or ((self.rent.rentedBedrooms.residence.category = Category::standard and self.label = 'SBOOO')
+            implies self.percentage = 10)
 
 
 -------------------------------------------------------------------------------
