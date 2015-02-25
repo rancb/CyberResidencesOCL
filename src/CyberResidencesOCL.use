@@ -781,6 +781,6 @@ context Resident
 -- context Residence inv uniqueNumberApartForPrivateBathroom:
     -- All rooms have a distinct number, except private bathrooms.
 
---context Residence
---    inv uniqueNumberApartForPrivateBathroom:
---        self.rooms->excluding(self.rooms->select(oclIsKindOf(Bathroom).isOnTheLanding = false))->isUnique(number)
+context Residence
+    inv uniqueNumberApartForPrivateBathroom:
+        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=true))->isUnique(number)
