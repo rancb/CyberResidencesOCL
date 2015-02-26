@@ -422,6 +422,15 @@ context Bedroom
     -- spread over more than one floor, then 20€ of reduction will
     -- automatically be deduced.
 
+context Tenant
+    inv derivePaidRate:
+        let groupFloors : Set(Integer) = self.rentedBedrooms.floor->asSet() in
+            if groupFloors->size() = 1 then
+                self.paidRate = self.rent.rate->sum()
+            else
+                self.paidRate = (self.rent.rate->sum() - 20)
+            endif
+
 
 -------------------------------------------------------------------------------
 --                                  deriveRate
