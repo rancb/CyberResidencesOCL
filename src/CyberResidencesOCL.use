@@ -632,7 +632,7 @@ context Resident
 
 context Bedroom
     inv oooBedroomsNotRented:
-        (not self.isOutOfOrder)
+        self.isOutOfOrder
             implies self.tenant->isEmpty()
 
 
@@ -652,7 +652,7 @@ context Bedroom
 context Bathroom
     inv oooIfPrestige:
         self.residence.category = Category::prestige
-            implies self.isOutOfOrder
+            and self.isOutOfOrder
                 implies self.bedroom.isOutOfOrder
 
 
@@ -725,10 +725,14 @@ context Rent
 
 context Discount
     inv sboooPercentage:
-        ((self.rent.rentedBedrooms.residence.category = Category::premium and self.label = 'SBOOO')
-            implies self.percentage = 25)
-        or ((self.rent.rentedBedrooms.residence.category = Category::standard and self.label = 'SBOOO')
-            implies self.percentage = 10)
+        if (self.rent.rentedBedrooms.residence.category = Category::premium and self.label = 'SBOOO') then
+            self.percentage = 25
+        else if (self.rent.rentedBedrooms.residence.category = Category::standard and self.label = 'SBOOO') then
+            self.percentage = 10
+        else
+            true
+        endif
+        endif
 
 
 -------------------------------------------------------------------------------
