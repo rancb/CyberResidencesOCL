@@ -167,8 +167,11 @@ constraints
 
 context Rent
     inv aboooConditions:
-        (self.rentedBedrooms.residence.category <> Category::economy  and self.rentedBedrooms.bathrooms.select(b | not b.isOutOfOrder)->isEmpty())
-            implies self.discounts.exists(d | d.label = 'BROOO50')
+        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms.select(b |
+            not b.isOutOfOrder)
+        ->isEmpty())
+            implies self.discounts.exists(d |
+                d.label = 'BROOO50')
 
 
 -------------------------------------------------------------------------------
@@ -229,7 +232,7 @@ context Residence
     inv allPrestigeBathrooms:
         self.category = Category::prestige
             implies self.bedrooms()->forAll(b |
-                (b.nbOfSingleBeds + b.nbOfDoubleBeds) <= b.bathrooms->size)
+                (b.nbOfSingleBeds + b.nbOfDoubleBeds) <= b.bathrooms->size())
 
 
 -------------------------------------------------------------------------------
@@ -243,7 +246,7 @@ context Residence
 
 context Bedroom
     inv atLeastABed:
-        not self.isOutOfOrder
+        (not self.isOutOfOrder)
             implies (self.nbOfSingleBeds >= 1 or self.nbOfDoubleBeds >= 1)
 
 
@@ -258,7 +261,7 @@ context Bedroom
 
 context Bedroom
     inv atLeastOneAdult:
-        self.occupants->notEmpty
+        self.occupants->notEmpty()
             implies (self.occupants->exists(o |
                 o.age >= 18))
 
@@ -276,7 +279,7 @@ context Bedroom
 context Resident
     inv childNonSmoking:
         self.age < 18
-            implies self.isSmoker = false
+            implies not self.isSmoker
 
 
 -------------------------------------------------------------------------------
@@ -292,9 +295,8 @@ context Resident
 
 context Resident
     inv childTutored:
-        self.occupiedRoom.residence.category <> Category::prestige
-            and self.age < 18
-                implies self.tutors->size > 0
+        (self.occupiedRoom.residence.category <> Category::prestige and self.age < 18)
+                implies self.tutors->size() > 0
 
 
 -------------------------------------------------------------------------------
@@ -324,7 +326,9 @@ context Rent
 
 context Residence
     inv deriveAvgRate:
-        self.avgRate = (self.bedrooms().rate->sum() / self.bedrooms().occupants->select(tutors->isEmpty())->size )
+        self.avgRate = (self.bedrooms().rate->sum() / self.bedrooms().occupants->select(o |
+            o.tutors->isEmpty())
+        ->size())
 
 
 -------------------------------------------------------------------------------
@@ -339,7 +343,7 @@ context Residence
 
 context Rent
     inv deriveDiscount:
-        self.discount = self.rate*self.discounts.percentage->sum()
+        self.discount = self.rate * self.discounts.percentage->sum()
 
 
 -------------------------------------------------------------------------------
@@ -370,8 +374,8 @@ context Room
 
 context Bathroom
     inv deriveIsOnTheLanding:
-        not self.bedroom->notEmpty
-            implies self.isOnTheLanding = true
+        self.bedroom->isEmpty()
+            implies self.isOnTheLanding
 
 
 -------------------------------------------------------------------------------
@@ -566,7 +570,9 @@ context Resident
 
 context Bedroom
     inv noBedroomOverload:
-        self.nbOfUnits >= self.occupants->select(age >= 3)->size
+        self.nbOfUnits >= self.occupants->select(o |
+            o.age >= 3)
+        ->size()
 
 
 -------------------------------------------------------------------------------
@@ -581,7 +587,7 @@ context Bedroom
 context Bedroom
     inv noEmptyRentedBedrooms:
         self.tenant->notEmpty()
-            implies self.occupants->size >= 1
+            implies self.occupants->size() >= 1
 
 
 -------------------------------------------------------------------------------
@@ -596,8 +602,8 @@ context Bedroom
 
 context Bedroom
     inv noSquaters:
-        not self.tenant->notEmpty()
-            implies self.occupants->size = 0
+        self.tenant->isEmpty()
+            implies self.occupants->size() = 0
 
 
 -------------------------------------------------------------------------------
@@ -612,7 +618,7 @@ context Bedroom
 context Resident
     inv noTutorForAdults:
         self.age >= 18
-            implies self.tutors->size = 0
+            implies self.tutors->size() = 0
 
 
 -------------------------------------------------------------------------------
@@ -626,8 +632,8 @@ context Resident
 
 context Bedroom
     inv oooBedroomsNotRented:
-        self.isOutOfOrder = false
-            implies self.tenant->isEmpty
+        (not self.isOutOfOrder)
+            implies self.tenant->isEmpty()
 
 
 
@@ -646,8 +652,8 @@ context Bedroom
 context Bathroom
     inv oooIfPrestige:
         self.residence.category = Category::prestige
-            implies self.isOutOfOrder = true
-                implies self.bedroom.isOutOfOrder = true
+            implies self.isOutOfOrder
+                implies self.bedroom.isOutOfOrder
 
 
 -------------------------------------------------------------------------------
@@ -679,7 +685,7 @@ context Tenant
 
 context Bathroom
     inv sameNumberIfPrivate:
-        self.isOnTheLanding = false
+        (not self.isOnTheLanding)
             implies self.number = self.bedroom.number
 
 
@@ -698,9 +704,13 @@ context Bathroom
 
 context Rent
     inv sboooConditions:
-        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms.select(b | not b.isOutOfOrder)->notEmpty()
-            and self.rentedBedrooms.bathrooms.select(b | b.isOutOfOrder)->notEmpty())
-                implies self.discounts.exists(d | d.label = 'SBOOO')
+        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms.select(b |
+            not b.isOutOfOrder)
+        ->notEmpty() and self.rentedBedrooms.bathrooms.select(b |
+            b.isOutOfOrder)
+        ->notEmpty())
+            implies self.discounts.exists(d |
+                d.label = 'SBOOO')
 
 
 -------------------------------------------------------------------------------
@@ -731,6 +741,12 @@ context Discount
     -- In a premium residence a resident that specified that he or she
     -- is non smoker will never ever be place in a smoking room.
 
+context Bedroom
+    inv smokingPremiumPolicy:
+        (self.residence.category = Category::premium and self.isNonSmoking)
+            implies self.occupants->forAll(o |
+                not o.isSmoker)
+
 
 -------------------------------------------------------------------------------
 --                            smokingPrestigePolicy
@@ -744,7 +760,7 @@ context Discount
 context Bedroom
     inv smokingPrestigePolicy:
         self.residence.category = Category::prestige
-            implies self.isNonSmoking = true
+            implies self.isNonSmoking
 
 
 -------------------------------------------------------------------------------
@@ -775,7 +791,7 @@ context Tenant
 context Resident
     inv tutorAdult:
         self.age < 18
-            implies self.tutored->size = 0
+            implies self.tutored->size() = 0
 
 
 -------------------------------------------------------------------------------
@@ -806,4 +822,6 @@ context Resident
 
 context Residence
     inv uniqueNumberApartForPrivateBathroom:
-        self.bedrooms()->union(self.bathrooms()->reject(b|b.isOnTheLanding=false))->isUnique(number)
+        self.bedrooms()->union(self.bathrooms()->reject(b |
+            not b.isOnTheLanding)
+        )->isUnique(number)
