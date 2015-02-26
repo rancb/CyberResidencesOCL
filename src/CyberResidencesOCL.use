@@ -626,7 +626,7 @@ context Resident
 
 context Bedroom
     inv oooBedroomsNotRented:
-        self.isOutOfOrder = false
+        self.isOutOfOrder = true
             implies self.tenant->isEmpty
 
 
@@ -646,7 +646,7 @@ context Bedroom
 context Bathroom
     inv oooIfPrestige:
         self.residence.category = Category::prestige
-            implies self.isOutOfOrder = true
+            and self.isOutOfOrder = true
                 implies self.bedroom.isOutOfOrder = true
 
 
