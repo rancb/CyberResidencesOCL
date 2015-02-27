@@ -167,7 +167,7 @@ constraints
 
 context Rent
     inv aboooConditions:
-        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms.select(b |
+        (self.rentedBedrooms.residence.category <> Category::economy and self.rentedBedrooms.bathrooms->size() > 0 and self.rentedBedrooms.bathrooms.select(b |
             not b.isOutOfOrder)
         ->isEmpty())
             implies self.discounts.exists(d |
@@ -343,7 +343,7 @@ context Residence
 
 context Rent
     inv deriveDiscount:
-        self.discount = self.rate * self.discounts.percentage->sum()
+        self.discount = self.rate * self.discounts.percentage->sum() / 100
 
 
 -------------------------------------------------------------------------------
@@ -708,7 +708,7 @@ context Bathroom
     -- A discount if given for a bed room if there are "Some Bathrooms
     -- Out Of Order", that is for bedroom with at least one bathroom
     -- out of order, but at least one bathroom still available.  The
-    -- label for this type of discount is SBOO. This type of discount
+    -- label for this type of discount is SBOOO. This type of discount
     -- does not apply on economy residences.
 
 context Rent

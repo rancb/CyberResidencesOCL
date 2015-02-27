@@ -5,11 +5,12 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+-- TESTED
 ! create G248_Res1 : Residence
 ! set G248_Res1.name := 'Lilas'
 ! set G248_Res1.floorMin := 1
 ! set G248_Res1.floorMax := 3
-! set G248_Res1.category := #prestige
+! set G248_Res1.category := #premium
 ! set G248_Res1.maxNbOfFreeUnits := 4
 ! set G248_Res1.avgRate := 300
 ! create G248_Res2 : Residence
@@ -43,7 +44,7 @@
 ! set G248_Br1.nbOfSingleBeds := 1
 ! set G248_Br1.nbOfDoubleBeds := 0
 ! set G248_Br1.rate := 150
-! set G248_Br1.isNonSmoking := true
+! set G248_Br1.isNonSmoking := false
 ! set G248_Br1.nbOfUnits := 1
 ! create G248_Br3 : Bedroom
 ! set G248_Br3.number := 203
@@ -52,7 +53,7 @@
 ! set G248_Br3.nbOfSingleBeds := 1
 ! set G248_Br3.nbOfDoubleBeds := 0
 ! set G248_Br3.rate := 150
-! set G248_Br3.isNonSmoking := true
+! set G248_Br3.isNonSmoking := false
 ! set G248_Br3.nbOfUnits := 1
 ! create G248_Br4 : Bedroom
 ! set G248_Br4.number := 104
@@ -61,7 +62,7 @@
 ! set G248_Br4.nbOfSingleBeds := 0
 ! set G248_Br4.nbOfDoubleBeds := 1
 ! set G248_Br4.rate := 150
-! set G248_Br4.isNonSmoking := true
+! set G248_Br4.isNonSmoking := false
 ! set G248_Br4.nbOfUnits := 2
 ! create G248_Bath1 : Bathroom
 ! set G248_Bath1.number := 101
@@ -87,7 +88,7 @@
 ! set G248_paul.name := 'Paul Bismut'
 ! set G248_paul.age := 22
 ! set G248_paul.gender := #male
-! set G248_paul.isSmoker := false
+! set G248_paul.isSmoker := true
 ! create G248_jean : Resident
 ! set G248_jean.name := 'Jean Pierre'
 ! set G248_jean.age := 28
@@ -130,7 +131,7 @@
 ! insert (G248_Res1,G248_Br1) into ContainsRooms
 ! insert (G248_Res1,G248_Br2) into ContainsRooms
 ! insert (G248_Res1,G248_Br3) into ContainsRooms
-! insert (G248_Res1,G248_Br4) into ContainsRooms
+! insert (G248_Res2,G248_Br4) into ContainsRooms
 ! insert (G248_Res1,G248_Room1) into ContainsRooms
 ! insert (G248_Res1,G248_Room2) into ContainsRooms
 ! insert (G248_Res1,G248_Bath1) into ContainsRooms
